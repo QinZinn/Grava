@@ -1,8 +1,7 @@
 name: Release
 
-# Pushing a tag such as v0.1.0 builds fully static musl binaries with the
-# default features and publishes them. Run it by hand to test the build: the
-# archives are then kept as workflow artifacts and nothing is released.
+# Pushing a tag builds static musl archives, RPMs and DEBs with default features.
+# A manual run keeps artifacts for testing without publishing a release.
 on:
   push:
     tags:
@@ -32,40 +31,29 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+          components: rust-docs
       # The default features are pure Rust, so the musl target's own C library
       # is all that is linked; musl-tools only supplies the `musl-gcc` driver.
-      - name: Install musl tools
-        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends musl-tools
-      - name: Build
-        run: cargo build --locked --release --target ${{ matrix.target }}
-      - name: Check that the binary is static and runs
+      - name: Install packaging tools
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends musl-tools rpm binutils python3
+      - name: Check the release tag
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          binary=target/${{ matrix.target }}/release/grava
-          file "$binary" | tee /dev/stderr | grep -E 'statically linked|static-pie linked'
-          "$binary" --version
-          "$binary" --headless -i demo --frames 60 --size 60x30 --seed 1 --no-color | head -n 3
-      - name: Package
-        id: package
-        run: |
-          version="${GITHUB_REF_NAME:-dev}"
-          name="grava-${version}-${{ matrix.target }}"
-          binary=target/${{ matrix.target }}/release/grava
-          mkdir -p "dist/$name"
-          cp "$binary" LICENSE README.md "dist/$name/"
-          cp assets/config.toml "dist/$name/config.toml"
-          "$binary" --man > "dist/$name/grava.1"
-          mkdir "dist/$name/completions"
-          for shell in bash zsh fish; do
-            "$binary" --completions "$shell" > "dist/$name/completions/grava.$shell"
-          done
-          tar -C dist -czf "dist/$name.tar.gz" "$name"
-          (cd dist && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")
-          echo "archive=dist/$name.tar.gz" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY'
+          import os, tomllib
+          with open("Cargo.toml", "rb") as manifest:
+              version = tomllib.load(manifest)["package"]["version"]
+          assert os.environ["GITHUB_REF_NAME"] == f"v{version}", "Tag must match Cargo.toml"
+          PY
+      - name: Build and package
+        run: packaging/build.sh ${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: grava-${{ matrix.target }}
           path: |
             dist/*.tar.gz
+            dist/*.rpm
+            dist/*.deb
             dist/*.sha256
           if-no-files-found: error
 

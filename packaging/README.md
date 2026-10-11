@@ -1,25 +1,99 @@
-# Packaging templates
+# Packaging
 
-Templates only: nothing here is published. Each one builds the default,
-pure-Rust configuration and installs the binary, the license, the README, the
-default config as documentation, the man page (`grava --man`) and the completions
-for bash, zsh and fish (`grava --completions SHELL`).
+## GitHub release packages
+
+`build.sh` builds the default-feature static musl binary, generates the manual
+and bash/zsh/fish completions, collects third-party license notices, and creates:
+
+| Target | Fedora RPM | Debian DEB | Portable archive |
+|---|---|---|---|
+| `x86_64-unknown-linux-musl` | `grava-0.1.0-1.x86_64.rpm` | `grava_0.1.0-1_amd64.deb` | `grava-v0.1.0-x86_64-unknown-linux-musl.tar.gz` |
+| `aarch64-unknown-linux-musl` | `grava-0.1.0-1.aarch64.rpm` | `grava_0.1.0-1_arm64.deb` | `grava-v0.1.0-aarch64-unknown-linux-musl.tar.gz` |
+
+Names follow the version in `Cargo.toml`. Run on a native machine or runner of
+the requested architecture; documentation generation executes the binary.
+Both architectures use the same script in the release workflow.
+
+Requirements: the current stable Rust toolchain, its matching `rust-docs` component and musl target,
+Python 3.11+, GNU binutils/coreutils/tar/gzip, and `rpmbuild`. Debian packaging
+uses `dpkg-deb`, or an official Debian container through rootless Podman when
+`dpkg-deb` is absent. The container image must be available; its initial pull
+requires network access. No host packages are installed by the build script.
+The application still supports Rust 1.88; release packaging needs the newer
+standard-library copyright catalog shipped with current stable Rust.
+
+On Fedora, install the missing build tools if needed:
+
+```sh
+sudo dnf install rpm-build binutils python3 podman
+rustup update stable
+rustup target add --toolchain stable x86_64-unknown-linux-musl
+rustup component add --toolchain stable rust-docs
+RUSTUP_TOOLCHAIN=stable packaging/build.sh
+```
+
+On Debian / Ubuntu:
+
+```sh
+sudo apt install build-essential musl-tools rpm binutils python3
+rustup update stable
+rustup target add --toolchain stable x86_64-unknown-linux-musl
+rustup component add --toolchain stable rust-docs
+RUSTUP_TOOLCHAIN=stable packaging/build.sh
+```
+
+Use `aarch64-unknown-linux-musl` instead on ARM64. The musl target's bundled
+runtime is used; neither build needs the optional native audio libraries.
+
+```sh
+RUSTUP_TOOLCHAIN=stable packaging/build.sh aarch64-unknown-linux-musl
+# An optional second argument selects a different output directory.
+RUSTUP_TOOLCHAIN=stable packaging/build.sh x86_64-unknown-linux-musl /tmp/grava-release
+```
+
+Outputs go to ignored `dist/`, with individual `.sha256` files and `SHA256SUMS`.
+The staging tree is under `target/packages/TARGET/root`. `SOURCE_DATE_EPOCH`
+defaults to the source commit's timestamp and controls package/archive dates.
+RPM and DEB helpers can also package an existing stage; see
+[`rpm/`](rpm/README.md) and [`debian/`](debian/README.md).
+
+The release binary includes the pure Rust `pulse` backend, reaching PipeWire
+through `pipewire-pulse` as well as PulseAudio. It has no glibc dependency.
+Desktop audio servers are recommended packages; demo, stdin and FIFO inputs
+work without one. Native `pipewire` and `alsa` features are not included.
+
+Packages install the binary, manual, completions, README, example config and
+full license notices. The config is documentation under `/usr/share/doc/grava/`;
+users create their own config with `grava --init`.
+
+```sh
+# Check a downloaded release, then install the package for your system.
+sha256sum -c SHA256SUMS
+sudo dnf install ./grava-0.1.0-1.x86_64.rpm
+# or
+sudo apt install ./grava_0.1.0-1_amd64.deb
+grava --version
+```
+
+`SHA256SUMS` covers every release asset; to check only the package you downloaded,
+select its line first, for example
+`grep 'grava_0.1.0-1_amd64.deb$' SHA256SUMS | sha256sum -c -`.
+
+These are upstream binary packages, not submissions to the Fedora or Debian
+distribution archives. Release steps are in [docs/RELEASING.md](../docs/RELEASING.md).
+
+## Community packaging templates
+
+The following source-build templates remain unpublished. Each builds the
+default pure Rust configuration and installs documentation and completions.
 
 | Directory | For | Notes |
 |---|---|---|
 | [`aur/grava`](aur/grava/PKGBUILD) | AUR, tagged release | `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO` |
 | [`aur/grava-git`](aur/grava-git/PKGBUILD) | AUR, main branch | the version comes from `Cargo.toml` and the commit count |
 | [`void/srcpkgs/grava`](void/srcpkgs/grava/template) | Void Linux (`xbps-src`) | `xgensum -i grava` after tagging |
-| [`fedora/grava.spec`](fedora/grava.spec) | Fedora COPR | needs a `cargo vendor` tarball; the steps are in the file |
+| [`fedora/grava.spec`](fedora/grava.spec) | Fedora COPR source package | needs a `cargo vendor` tarball; the steps are in the file |
 
-## Releasing
-
-1. Update `version` in `Cargo.toml`, run `cargo build` so that `Cargo.lock` follows,
-   and commit.
-2. Tag `vX.Y.Z` and push the tag. The `Release` workflow builds static musl binaries
-   for `x86_64` and `aarch64` and attaches them, with `SHA256SUMS`, to a GitHub release.
-3. In each template set the new version, reset the release number, and refresh the
-   checksum (the tag archive is `Grava-X.Y.Z.tar.gz`).
-
-The optional `pipewire` and `alsa` backends need system libraries at build time;
-each template says which packages to add to enable them.
+When releasing a new version, update each template's version/release and source
+checksum. The optional `pipewire` and `alsa` backends require system libraries;
+the templates document their build requirements.

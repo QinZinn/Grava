@@ -36,9 +36,21 @@ copy `target/release/grava` anywhere on your `PATH`.
 **Prebuilt binaries.** Each tagged release on the
 [releases page](https://github.com/QinZinn/Grava/releases) carries fully static
 `x86_64` and `aarch64` binaries (musl, default features) with the man page and
-the shell completions. Unpack and run, no installation needed.
+the shell completions, as well as Fedora `.rpm` and Debian `.deb` packages.
+Choose `x86_64` / `amd64` for a typical Intel or AMD PC, or `aarch64` / `arm64`
+for ARM64. Install a downloaded package with:
 
-**Distributions.** Templates for the AUR (`grava` and `grava-git`), Void Linux
+```sh
+# Fedora
+sudo dnf install ./grava-0.1.0-1.x86_64.rpm
+# Debian / Ubuntu
+sudo apt install ./grava_0.1.0-1_amd64.deb
+```
+
+Alternatively, unpack the `.tar.gz` archive and run its `grava` binary directly.
+See the [packaging guide](packaging/README.md) to build these artifacts locally.
+
+**Community repositories.** Templates for the AUR (`grava` and `grava-git`), Void Linux
 (`xbps-src`) and Fedora (COPR) are in [`packaging/`](packaging/). They are not
 published packages yet.
 
