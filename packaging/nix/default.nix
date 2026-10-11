@@ -10,6 +10,7 @@ rustPlatform.buildRustPackage {
       ../../Cargo.toml
       ../../Cargo.lock
       ../../src
+      ../../tests
       ../../assets
       ../../LICENSE
       ../../README.md
