@@ -1,4 +1,4 @@
-name: APT repository
+name: APT and Void repositories
 
 on:
   workflow_dispatch:
@@ -30,7 +30,8 @@ jobs:
         run: |
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-            --pattern '*.deb' --pattern SHA256SUMS --dir target/apt-input
+            --pattern '*.deb' --pattern '*-unknown-linux-musl.tar.gz' \
+            --pattern SHA256SUMS --dir target/apt-input
           cd target/apt-input
           awk '$2 ~ /\.deb$/ { print }' SHA256SUMS | sha256sum -c -
       - name: Sign the repository
@@ -45,6 +46,31 @@ jobs:
           printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
           packaging/apt/build-repository.sh target/apt-input target/pages/apt "$APT_GPG_FINGERPRINT"
           touch target/pages/.nojekyll
+      - name: Prepare Void repository tools
+        run: |
+          docker run --detach --name grava-void \
+            ghcr.io/void-linux/void-glibc-full@sha256:0d8ab93458484cc3fa1e52d2efd4062c3dcca486c09c57068e99bc4b77e59ea0 \
+            sleep infinity
+          docker exec grava-void sh -c 'xbps-install -Syu xbps && xbps-install -y bash binutils openssl'
+          docker cp packaging/void grava-void:/build-scripts
+          docker cp target/apt-input grava-void:/release
+      - name: Sign the Void repository
+        env:
+          VOID_RSA_PRIVATE_KEY: ${{ secrets.VOID_RSA_PRIVATE_KEY }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          test -n "$VOID_RSA_PRIVATE_KEY"
+          keydir=$(mktemp -d)
+          trap 'rm -rf "$keydir"; docker exec grava-void rm -f /signing-key.pem || true' EXIT
+          (umask 077; printf '%s' "$VOID_RSA_PRIVATE_KEY" > "$keydir/private.pem")
+          docker cp "$keydir/private.pem" grava-void:/signing-key.pem
+          docker exec grava-void /build-scripts/build-repository.sh \
+            /release "${RELEASE_TAG#v}" /repository /signing-key.pem
+          docker cp grava-void:/repository target/pages/void
+          cmp packaging/void/grava-repository-key.pem target/pages/void/grava-repository-key.pem
+      - name: Remove the Void tools container
+        if: always()
+        run: docker rm --force grava-void || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: target/pages
