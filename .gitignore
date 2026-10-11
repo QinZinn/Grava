@@ -1,0 +1,12 @@
+/target/
+*.profraw
+*.profdata
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Sources fetched while testing the Fedora spec
+/packaging/fedora/*.tar.gz
+/packaging/fedora/*.tar.xz
+/packaging/fedora/Grava-*/

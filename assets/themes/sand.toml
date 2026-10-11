@@ -1,0 +1,15 @@
+# Warm desert sand.
+background = "default"
+sand = "#e8d5b0"
+colorize = "density"
+gradient = ["#5c4a32", "#b8956a", "#e8d5b0", "#fff8e7"]
+note_colors = [
+  "#c4572f", "#d97a3a", "#e69b4c", "#f0bc62", "#e8d5b0", "#b9c27a",
+  "#8fae6b", "#6f9c86", "#6a8fa6", "#8a86b4", "#b0789e", "#c9697a",
+]
+border = "#6b5a45"
+title = "#f2c879"
+hud_text = "#cbb894"
+hud_accent = "#f2c879"
+hud_dim = "#6b5a45"
+hud_error = "#e06c5a"

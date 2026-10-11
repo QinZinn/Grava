@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  default:
+    name: Default and no default features
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Test default features
+        run: cargo test --locked
+      - name: Test without default features
+        run: cargo test --locked --no-default-features
+
+  all-features:
+    name: All features
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install optional backend development libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpipewire-0.3-dev libasound2-dev libclang-dev pkg-config
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Clippy all features
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - name: Test all features
+        run: cargo test --locked --all-features
+
+  musl:
+    name: Static musl build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+      - name: Install musl tools
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends musl-tools
+      - name: Test with the musl C library
+        run: cargo test --locked --target x86_64-unknown-linux-musl
+      - name: Check that the release binary is static
+        run: |
+          cargo build --locked --release --target x86_64-unknown-linux-musl
+          file target/x86_64-unknown-linux-musl/release/grava | grep -E 'statically linked|static-pie linked'
+
+  docs:
+    name: Man page and completions
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Generate and lint
+        run: |
+          sudo apt-get update && sudo apt-get install --yes --no-install-recommends man-db
+          cargo run --locked --quiet -- --man > grava.1
+          man --warnings -l grava.1 > /dev/null
+          for shell in bash zsh fish; do
+            cargo run --locked --quiet -- --completions "$shell" > "grava.$shell"
+          done
+          bash -n grava.bash
+
+  msrv:
+    name: Rust 1.88
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
+      - name: Check minimum supported Rust version
+        run: cargo check --locked --all-targets

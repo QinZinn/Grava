@@ -1,0 +1,13 @@
+# The terminal's own palette only: ANSI names and palette indices follow
+# whatever theme the terminal (or pywal, wallust, matugen) has applied.
+background = "default"
+sand = "default"
+colorize = "density"
+gradient = ["8", "4", "6", "15"]
+note_colors = ["1", "9", "3", "11", "2", "10", "6", "14", "4", "12", "5", "13"]
+border = "8"
+title = "bright-white"
+hud_text = "7"
+hud_accent = "6"
+hud_dim = "8"
+hud_error = "1"

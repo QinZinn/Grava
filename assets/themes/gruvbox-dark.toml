@@ -1,0 +1,15 @@
+# Gruvbox dark, https://github.com/morhetz/gruvbox
+background = "default"
+sand = "#ebdbb2"
+colorize = "density"
+gradient = ["#504945", "#d79921", "#fe8019", "#fbf1c7"]
+note_colors = [
+  "#cc241d", "#d65d0e", "#d79921", "#fabd2f", "#b8bb26", "#98971a",
+  "#8ec07c", "#689d6a", "#83a598", "#458588", "#d3869b", "#b16286",
+]
+border = "#665c54"
+title = "#fabd2f"
+hud_text = "#bdae93"
+hud_accent = "#fe8019"
+hud_dim = "#7c6f64"
+hud_error = "#fb4934"

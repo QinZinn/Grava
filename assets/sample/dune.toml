@@ -1,0 +1,14 @@
+# A sample theme: copy it to ~/.config/grava/themes/ and make it your own.
+# Every key is optional; a missing key keeps the built-in default theme's value.
+# Colors are "default" (the terminal's own), an ANSI name, a palette index
+# "0".."255", or "#rrggbb".
+background = "default"
+sand = "#e8d5b0"
+colorize = "density"
+gradient = ["#4a3b2a", "#a68a64", "#e8d5b0", "#fff6e0"]
+border = "#6b5a45"
+title = "#f2c879"
+hud_text = "#cbb894"
+hud_accent = "#f2c879"
+hud_dim = "#6b5a45"
+hud_error = "#e06c5a"

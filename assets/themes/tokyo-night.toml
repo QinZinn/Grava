@@ -1,0 +1,15 @@
+# Tokyo Night, https://github.com/folke/tokyonight.nvim
+background = "default"
+sand = "#c0caf5"
+colorize = "density"
+gradient = ["#414868", "#7aa2f7", "#7dcfff", "#c0caf5"]
+note_colors = [
+  "#f7768e", "#ff9e64", "#e0af68", "#9ece6a", "#73daca", "#1abc9c",
+  "#7dcfff", "#2ac3de", "#7aa2f7", "#9d7cd8", "#bb9af7", "#ff007c",
+]
+border = "#414868"
+title = "#e0af68"
+hud_text = "#a9b1d6"
+hud_accent = "#7aa2f7"
+hud_dim = "#565f89"
+hud_error = "#f7768e"

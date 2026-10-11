@@ -1,0 +1,15 @@
+# Catppuccin Mocha, https://catppuccin.com/palette
+background = "default"
+sand = "#f5e0dc"
+colorize = "density"
+gradient = ["#585b70", "#89b4fa", "#94e2d5", "#cdd6f4"]
+note_colors = [
+  "#f38ba8", "#eba0ac", "#fab387", "#f9e2af", "#a6e3a1", "#94e2d5",
+  "#89dceb", "#74c7ec", "#89b4fa", "#b4befe", "#cba6f7", "#f5c2e7",
+]
+border = "#585b70"
+title = "#cba6f7"
+hud_text = "#a6adc8"
+hud_accent = "#89b4fa"
+hud_dim = "#6c7086"
+hud_error = "#f38ba8"

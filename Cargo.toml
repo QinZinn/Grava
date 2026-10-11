@@ -1,0 +1,47 @@
+[package]
+name = "grava"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "A terminal audio visualizer that draws Chladni figures with sand"
+license = "MIT"
+readme = "README.md"
+exclude = ["docs/media/", ".github/", "packaging/"]
+repository = "https://github.com/QinZinn/Grava"
+homepage = "https://github.com/QinZinn/Grava"
+keywords = ["audio", "terminal", "visualizer", "chladni", "linux"]
+categories = ["command-line-utilities", "multimedia::audio"]
+
+[features]
+# Native capture backends. `pulse` is pure Rust (it also reaches PipeWire
+# through pipewire-pulse); the other two link system libraries.
+default = ["pulse"]
+pulse = ["dep:pulseaudio"]
+pipewire = ["dep:pipewire"]
+alsa = ["dep:alsa"]
+
+[dependencies]
+alsa = { version = "0.12.1", optional = true }
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+clap_complete = "4.6.11"
+clap_mangen = "0.3.3"
+crossterm = "0.29"
+fastrand = "2.3"
+libm = "0.2.16"
+pipewire = { version = "0.9", optional = true, features = ["v0_3_44"] }
+pulseaudio = { version = "0.3.1", optional = true }
+realfft = "3.5.0"
+rtrb = "0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+signal-hook = "0.3"
+thiserror = "2.0"
+toml = "0.8"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"

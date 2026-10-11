@@ -1,0 +1,291 @@
+# grava default configuration
+# Copy with `grava --init`, or print with `grava --print-default-config`.
+# Configuration is optional; missing sections and keys use these defaults.
+# Unknown keys produce a warning. Invalid values name the offending key.
+# The schema includes settings introduced by later implementation milestones.
+#
+# Location: --config PATH, otherwise $XDG_CONFIG_HOME/grava/config.toml,
+# falling back to ~/.config/grava/config.toml.
+# Nothing is written automatically.
+
+[general]
+# Target frames per second; any positive integer. The default is 60 fps.
+framerate = 60
+
+# Automatically adjust gain to quiet and loud passages.
+autosens = true
+
+# Gain multiplier; finite and nonnegative, with or without autosens.
+# Zero mutes the response to audio.
+sensitivity = 1.0
+
+# Seconds of silence before the plate goes to sleep: the screen is blanked
+# (plate, border and status row) until sound returns, a key is pressed or a
+# message appears. The count starts once the sound has died away, about a
+# second after the music stops. Zero never sleeps.
+# Independently of this key, a plate whose sand has stopped moving is not
+# redrawn, and grava only checks for sound 20 times a second.
+sleep_timer = 0
+
+# Poll config and active theme modification times every 500 ms.
+# Symlinks are followed. A broken reload keeps the previous configuration.
+live_reload = true
+
+[input]
+# auto | pulse | pipewire | alsa | fifo | stdin | demo
+# Auto tries compiled backends in this order: pipewire, pulse, alsa, and uses
+# the first whose server answers. pulse is part of the default build and also
+# serves PipeWire through pipewire-pulse; pipewire and alsa are optional
+# Cargo features. fifo, stdin and the deterministic demo need no audio server.
+method = "auto"
+
+# "auto" captures the monitor of the default output: what you hear, and with
+# pulse and pipewire it follows the default output when that changes.
+# Otherwise name a source (see `grava --list-sources`):
+#   pulse     a source name or index, e.g. alsa_output.pci-0000_00_1f.3.analog-stereo.monitor
+#   pipewire  a node name or serial; an output node records its monitor
+#   alsa      a device such as hw:Loopback,1 (the default)
+#   fifo      a path (the default is /tmp/mpd.fifo)
+source = "auto"
+
+# average | left | right: how to mix captured channels down to mono.
+channel_mix = "average"
+
+# Sample rate in Hz, used for fifo, stdin and alsa; must be positive.
+# pulse uses the rate of the recorded source and pipewire resamples to 48 kHz,
+# so neither reads this key.
+sample_rate = 48000
+
+# Raw PCM sample encoding for fifo and stdin: s16le | s32le | f32le.
+sample_format = "s16le"
+
+# Raw PCM channel count for fifo and stdin; must be a positive integer.
+channels = 2
+
+[analysis]
+# FFT window length in samples; a power of two of at least 2.
+fft_size = 4096
+
+# Lower spectrum cutoff in Hz; must be finite and nonnegative.
+low_cutoff = 40
+
+# Upper spectrum cutoff in Hz; must be finite and greater than low_cutoff.
+# The analyzer uses only available FFT bins when this exceeds Nyquist.
+high_cutoff = 8000
+
+# Suppress energy below this finite, nonnegative threshold after gain.
+noise_gate = 0.02
+
+# Loudness attack smoothing time in milliseconds; zero is instantaneous.
+attack_ms = 20
+
+# Loudness release smoothing time in milliseconds; zero is instantaneous.
+release_ms = 250
+
+[plate]
+# square | circle: a square Chladni plate or a circular drum head.
+# The drum's catalog leaves out hollow "whispering gallery" modes such as
+# J(12,1), whose motionless core would draw noise instead of nodal lines.
+shape = "square"
+
+# Square plate only: free | fixed. Free uses cosines, fixed uses sines.
+edge = "free"
+
+# Square plate only: anti | sym | mixed.
+# Anti subtracts the two mode terms and requires n != m.
+# Sym adds them; mixed alternates symmetry along the mode catalog.
+symmetry = "anti"
+
+# "auto" or an unquoted integer in 4..16. The catalog itself never changes
+# with terminal size; this setting limits which entries are reachable.
+# Auto keeps nodal lines roughly six sub-pixels apart, clamped to 4..16.
+# A drum mode J(n,k) has the order ceil(2 j(n,k) / pi), which gives its nodal
+# circles the same spacing as a square mode of that order.
+max_order = "auto"
+
+# Circle only: slow angular drift in radians per second. Must be finite.
+# Zero stops rotation; a negative value reverses its direction.
+rotate_speed = 0.05
+
+[mapping]
+# note | frequency | spectrum: pitch class, dominant frequency, or top peaks.
+mode = "note"
+
+# In note mode, use octave to choose a more intricate twelve-note tier:
+# tier = clamp(octave - base_octave, 0, tiers - 1) and figure = catalog entry
+# tier * 12 + pitch class. When off, every octave uses the same tier.
+octave_complexity = true
+
+# Lowest octave mapped to the first tier when octave_complexity is enabled.
+base_octave = 2
+
+# Ignore uncertain pitches below this confidence; a finite number in 0..1.
+# Confidence is the share of pitched energy in the dominant pitch class:
+# about 0.08 for noise, 0.33 for an even triad, near 1 for a clean tone.
+min_confidence = 0.25
+
+# A candidate must keep winning for this many milliseconds before switching.
+# Zero switches immediately; silence preserves the current figure.
+hold_ms = 120
+
+# Crossfade between target mode weights over this many milliseconds.
+# Zero changes immediately.
+transition_ms = 350
+
+# Spectrum mode only: number of strongest peaks to combine, in 1..8.
+peaks = 4
+
+# Optional fixed figures for pitch classes C, C#, D, D#, E, F, F#, G,
+# G#, A, A#, B. Omit the map to use the catalog's normal note mapping.
+# Square: [n, m], each in 0..16; fixed edges require both >= 1,
+# and anti symmetry requires n != m.
+# Circle: [n, k], with n in 0..16 and k in 1..8.
+# notes = { "C" = [0, 3], "C#" = [1, 4], "A" = [2, 5] }
+
+[particles]
+# "auto" or an unquoted positive integer. Auto uses density times plate area,
+# clamped to 2,000..150,000 particles. Explicit counts are not auto-clamped.
+count = "auto"
+
+# Particles per plate sub-pixel in auto mode; finite and greater than zero.
+density = 0.45
+
+# Shaking distance in sub-pixels per frame at full energy, normalized by dt.
+# Must be finite and nonnegative; zero stops particle displacement.
+step = 1.2
+
+# Random shaking strength; must be finite and nonnegative.
+jitter = 1.0
+
+# Gentle drift toward nodal lines; must be finite and nonnegative.
+settle = 0.4
+
+# Fraction of the previous displacement carried over; finite and in 0..1.
+# Zero gives a pure random walk without inertia.
+inertia = 0.0
+
+# Extra shaking on musical onsets; must be finite and nonnegative.
+kick = 1.0
+
+[render]
+# auto | braille | quadrant | half | ascii.
+# Auto uses Braille in a UTF-8 locale, except on TERM=linux, otherwise ASCII.
+glyphs = "auto"
+
+# Printable ASCII characters ordered from empty to dense; cannot be empty.
+# Spaces are allowed; control characters are not.
+ascii_ramp = " .:-=+*#%@"
+
+# A sub-pixel is lit when its accumulated density reaches this threshold.
+# Must be finite and greater than zero; fractional values are permitted.
+dot_threshold = 1
+
+# Fraction of the previous density kept as an afterimage, finite and in 0..1.
+# Zero clears each frame; one keeps all previous density.
+trail = 0.0
+
+# auto | truecolor | 256 | 16 | none (all written as strings).
+# Auto checks COLORTERM, then TERM; NO_COLOR disables color output.
+color_mode = "auto"
+
+# Positive number of quantized OKLab gradient steps; fewer steps reduce SGR
+# changes in the terminal. A single step is allowed.
+gradient_steps = 24
+
+# Wrap each frame in synchronized terminal output to reduce flicker.
+synchronized_output = true
+
+# Terminal cell width divided by height; finite and greater than zero.
+# Used with the glyph sub-pixel grid to preserve the physical plate shape.
+cell_aspect = 0.5
+
+[layout]
+# square | stretch. Square preserves physical proportions; stretch fills
+# the available drawing area.
+fit = "square"
+
+# [vertical, horizontal] padding in terminal cells; nonnegative integers.
+padding = [1, 2]
+
+# center | top | bottom | left | right: place the plate in the available area.
+align = "center"
+
+[border]
+# none | rounded | square | double | thick | circle.
+# Circle is drawn with the plate glyphs and requires plate.shape = "circle".
+style = "none"
+
+# Optional border title, e.g. " {note}{octave} ". Empty hides the title.
+# Accepts the same placeholders as hud.format below.
+title = ""
+
+# left | center | right: position the title along the border.
+title_align = "center"
+
+[hud]
+# Show the status line. The i key toggles it at runtime.
+enabled = false
+
+# top | bottom: status line placement.
+position = "bottom"
+
+# Status line placeholders: {note} {octave} {hz} {mode} {shape} {theme}
+# {fps} {particles} {source} {energy}. Mode is (n,m) or J(n,k), and energy
+# is a small meter. Plain text and spaces are preserved.
+format = "{note}{octave}  {mode}  {fps} fps"
+
+[colors]
+# Built-in name, a file in the config directory's themes/, or "pywal".
+# Built-ins: default, sand, mono, catppuccin-mocha, gruvbox-dark, nord,
+# tokyo-night, rose-pine. A user theme file with the same name wins.
+# Precedence: defaults < theme < color overrides below < CLI flags.
+theme = "default"
+
+# Optional colors.json path for the pywal theme. When omitted it uses
+# ~/.cache/wal/colors.json. A leading ~/ is resolved relative to home.
+# Pywal maps foreground to sand; color1 -> color4 -> color6 -> foreground
+# to the gradient; color8 to border/hud_dim; color4 to title/hud_accent;
+# color1 to hud_error; foreground to hud_text.
+# pywal_path = "~/.cache/wal/colors.json"
+
+# Every color accepts "default", ANSI names black..white and bright-black
+# ..bright-white, quoted palette indices "0".."255", or "#rrggbb".
+# ANSI names/indices follow the terminal palette, including rice tools.
+# The default theme uses the terminal palette; uncomment only overrides
+# you want to replace. An omitted background leaves the terminal transparent.
+
+# Optional background color; omit it to avoid painting the background.
+# background = "default"
+
+# Grain color for solid colorization.
+# sand = "default"
+
+# solid | density | radial | vertical | horizontal | amplitude | note.
+# Density uses particle density; amplitude shows still-shaking grains;
+# note blends the twelve pitch-class colors when the note changes.
+# colorize = "density"
+
+# Ordered gradient stops; at least one color. Interpolated in OKLab.
+# gradient = ["8", "4", "6", "15"]
+
+# Exactly twelve pitch-class colors, ordered C, C#, D, D#, E, F, F#, G,
+# G#, A, A#, B, used by colorize = "note".
+# note_colors = ["1", "9", "3", "11", "2", "10", "6", "14", "4", "12", "5", "13"]
+
+# Plate border color.
+# border = "8"
+
+# Border title color.
+# title = "bright-white"
+
+# Normal HUD text color.
+# hud_text = "7"
+
+# Highlighted HUD values and accents.
+# hud_accent = "6"
+
+# Secondary HUD text color.
+# hud_dim = "8"
+
+# Temporary HUD errors, such as failed reloads or lost audio.
+# hud_error = "1"

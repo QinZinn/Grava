@@ -1,0 +1,15 @@
+# Shades of gray, whatever the terminal's palette.
+background = "default"
+sand = "#d0d0d0"
+colorize = "density"
+gradient = ["#3a3a3a", "#808080", "#c0c0c0", "#ffffff"]
+note_colors = [
+  "#4a4a4a", "#5a5a5a", "#6a6a6a", "#7a7a7a", "#8a8a8a", "#9a9a9a",
+  "#aaaaaa", "#bababa", "#cacaca", "#dadada", "#eaeaea", "#ffffff",
+]
+border = "#5a5a5a"
+title = "#ffffff"
+hud_text = "#b0b0b0"
+hud_accent = "#ffffff"
+hud_dim = "#6a6a6a"
+hud_error = "#ffffff"

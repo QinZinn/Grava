@@ -1,0 +1,33 @@
+# Template file for 'grava'. Copy the directory to void-packages/srcpkgs/ and
+# fill in the maintainer and the checksum (`xgensum -i grava`) after tagging.
+pkgname=grava
+version=0.1.0
+revision=1
+build_style=cargo
+# The default build is pure Rust. For the optional native backends use
+#   make_build_args="--features pipewire,alsa"
+#   makedepends="pipewire-devel alsa-lib-devel clang"
+# (add pkg-config to hostmakedepends as well).
+short_desc="Terminal audio visualizer that draws Chladni figures with sand"
+maintainer="Your Name <you@example.org>"
+license="MIT"
+homepage="https://github.com/QinZinn/Grava"
+distfiles="https://github.com/QinZinn/Grava/archive/refs/tags/v${version}.tar.gz"
+checksum=0000000000000000000000000000000000000000000000000000000000000000
+
+post_install() {
+	vlicense LICENSE
+	vdoc README.md
+	vsconf assets/config.toml
+	# The completions and the manual page come from the binary itself, which
+	# cannot run when cross compiling.
+	if [ -z "$CROSS_BUILD" ]; then
+		local grava=target/${RUST_TARGET}/release/grava
+		for shell in bash zsh fish; do
+			${grava} --completions ${shell} > grava.${shell}
+			vcompletion grava.${shell} ${shell}
+		done
+		${grava} --man > grava.1
+		vman grava.1
+	fi
+}

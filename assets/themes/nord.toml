@@ -1,0 +1,15 @@
+# Nord, https://www.nordtheme.com/docs/colors-and-palettes
+background = "default"
+sand = "#d8dee9"
+colorize = "density"
+gradient = ["#4c566a", "#5e81ac", "#88c0d0", "#eceff4"]
+note_colors = [
+  "#bf616a", "#d08770", "#ebcb8b", "#a3be8c", "#8fbcbb", "#88c0d0",
+  "#81a1c1", "#5e81ac", "#b48ead", "#d8dee9", "#e5e9f0", "#eceff4",
+]
+border = "#4c566a"
+title = "#88c0d0"
+hud_text = "#d8dee9"
+hud_accent = "#81a1c1"
+hud_dim = "#4c566a"
+hud_error = "#bf616a"
