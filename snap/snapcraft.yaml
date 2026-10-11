@@ -6,6 +6,10 @@ description: |
   PipeWire's PulseAudio compatibility server, and draws animated Chladni sand
   figures in your terminal. Includes themes, live configuration reload,
   deterministic demo synthesis, and raw PCM input from stdin or a FIFO.
+
+  After installation, enable desktop audio capture with `sudo snap connect grava:audio-record`.
+
+  Run `grava` to visualize playback, or try `grava -i demo` without an audio server.
 base: core24
 grade: stable
 confinement: strict

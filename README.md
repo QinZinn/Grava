@@ -72,11 +72,27 @@ See the [public key](packaging/apt/grava-archive-key.asc) and
 nix profile install github:QinZinn/Grava#grava
 ```
 
-**Other channels.** AUR, Snap Store, Fedora COPR and Void definitions are ready
-in [`packaging/`](packaging/) and [`snap/`](snap/); publication to those services
-is pending. See the [distribution guide](docs/DISTRIBUTION.md) for account setup,
-builds and publication steps. The Nix flake is available directly; a Nixpkgs
-submission is separate.
+**Fedora COPR.** Fedora 43 and 44, x86_64 and aarch64:
+
+```sh
+sudo dnf copr enable zinnn/grava
+sudo dnf install grava
+```
+
+**Snap (test channel).** Version 0.1.0 is available on `edge` for amd64 and arm64:
+
+```sh
+sudo snap install grava --edge
+sudo snap connect grava:audio-record
+snap run grava -i demo
+```
+
+Desktop capture needs verification before promotion to `stable`.
+
+**Other channels.** AUR and Void definitions are ready in
+[`packaging/`](packaging/); publication to those repositories is pending.
+See the [distribution guide](docs/DISTRIBUTION.md) for builds and publication
+steps. The Nix flake is available directly; a Nixpkgs submission is separate.
 
 ### Optional audio backends
 

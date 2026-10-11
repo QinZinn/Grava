@@ -4,19 +4,20 @@ Keep the published `v0.1.0` tag unchanged. Distribution definitions and workflow
 can be updated on `main` while continuing to package that immutable release.
 All packages use the default pure Rust `pulse` backend unless stated otherwise.
 
-| Channel | Prepared entry point | What makes it public |
+| Channel | Entry point | Publication status |
 |---|---|---|
-| AUR | `packaging/aur/grava/`, `packaging/aur/grava-git/` | Push PKGBUILD and generated `.SRCINFO` using your AUR SSH account |
-| Nix | `flake.nix`, `flake.lock`, `packaging/nix/` | Push `main`; users can install the GitHub flake directly |
-| Snap | `snap/snapcraft.yaml`, manual `Snap` workflow | Register the name, build/test, then upload to Snap Store |
+| AUR | `packaging/aur/grava/`, `packaging/aur/grava-git/` | Deferred until the maintainer can register an AUR account |
+| Nix | `flake.nix`, `flake.lock`, `packaging/nix/` | Available directly through the GitHub flake; not in Nixpkgs |
+| Snap | `snap/snapcraft.yaml`, manual `Snap` workflow | Public on `latest/edge`: amd64 revision 1, arm64 revision 2 |
 | APT | `packaging/apt/`, manual `APT repository` workflow | Live at `https://qinzinn.github.io/Grava/apt` for amd64 and arm64 |
-| DNF | `packaging/fedora/build-srpm.sh` | Create a COPR project and submit the source RPM |
+| DNF | `packaging/fedora/build-srpm.sh`, COPR `zinnn/grava` | Live for Fedora 43/44 on x86_64 and aarch64 |
 | Void | source template and `packaging/void/build-binary.sh` | Build a local package or submit upstream when eligible |
 
 ## AUR
 
-Publication is deferred: the maintainer currently has no AUR account.
-The prepared definitions remain available for local builds.
+Publication is deferred: the maintainer cannot currently register an AUR
+account. The prepared definitions remain available for local builds. Resume the
+submission steps below when registration is available.
 
 Create an account at <https://aur.archlinux.org/>, add your SSH public key in
 account settings, and ensure SSH uses its matching private key for
@@ -76,17 +77,62 @@ Reference: [Nixpkgs Rust packaging](https://github.com/NixOS/nixpkgs/blob/master
 
 ## Snap Store
 
-The intended publisher username is `zinnn`. Store publication still requires
-authentication and registration of the package name.
+The publisher is `zinnn`, and [grava](https://snapcraft.io/grava) is public on
+`latest/edge`: version `0.1.0`, amd64 revision **1** and arm64 revision **2**.
+Both uploads passed Store processing. The Store listing uses the Music and Audio
+category, project/source/issue links and recording-interface instructions. Its
+metadata is managed through the dashboard; review it when publishing new versions.
+Stable has no release yet; desktop audio capture still needs manual verification
+before promotion.
 
-Create a publisher account at <https://snapcraft.io/>, log in with
-`snapcraft login`, and reserve the name with `snapcraft register grava`.
-Registration availability is decided by the Store.
+Install the test release with:
 
-Push the configuration, then run **Actions → Snap → Run workflow**. The workflow
-builds amd64 and arm64 snaps, installs each locally, and checks its version and
-headless demo. It uploads artifacts without publishing them to the Store.
-Alternatively build locally on a supported Ubuntu/LXD setup with `snapcraft`.
+```sh
+sudo snap install grava --edge
+sudo snap connect grava:audio-record
+snap run grava -i demo
+```
+
+The **Actions → Snap → Run workflow** job has built and tested amd64 and arm64
+snaps. It installs each locally and checks its version and headless demo, then
+uploads workflow artifacts without publishing them to the Store. Download the
+artifacts from the successful workflow run, or build locally on a supported
+Ubuntu/LXD setup with `snapcraft`.
+
+Browser sign-in does not authenticate the publishing CLI. Snapcraft 9.1 removed
+the former Candid browser authentication, so do not use `--experimental-login`
+or `SNAPCRAFT_STORE_AUTH=candid`. The supported Ubuntu One flow prompts for your
+email, password and optional second factor directly in the terminal.
+
+On Fedora, `packaging/snap/store.sh` runs the official Canonical Snapcraft OCI
+image with rootless Podman, without installing snapd on the host. Run the login
+step in your own terminal:
+
+```sh
+packaging/snap/store.sh login
+```
+
+The wrapper exports credentials scoped to the `grava` snap and `edge` channel
+with a one-day expiry. It stores the export outside Git at
+`${XDG_STATE_HOME:-$HOME/.local/state}/grava/snap-store/store.json` (directory mode
+`0700`, file mode `0600`) and reuses it for subsequent commands. Enter account
+credentials only in the terminal prompt; do not paste them into chat, commit the
+export, or print its contents. This route uses the same `snapcraft export-login`
+and `SNAPCRAFT_STORE_CREDENTIALS` mechanism as a native Snapcraft installation.
+Run `login` again when the export expires. A failed login preserves the
+previous credential file.
+
+For future builds, upload the tested artifacts to `edge`:
+
+```sh
+packaging/snap/store.sh upload dist/snap/grava-snap-amd64/grava_0.1.0_amd64.snap
+packaging/snap/store.sh upload dist/snap/grava-snap-arm64/grava_0.1.0_arm64.snap
+packaging/snap/store.sh status
+```
+
+The Store reviews each upload before it becomes available. Native Snapcraft
+users can instead run `snapcraft upload FILE.snap --release=edge` followed by
+`snapcraft status grava` after authenticating with their own CLI.
 
 Before the first stable publication, install a build on a real desktop and
 connect its recording interface:
@@ -105,18 +151,16 @@ host dotfiles, theme files and arbitrary FIFO paths are not generally exposed.
 already set. Keep strict confinement and confirm desktop capture before
 promoting the package to stable.
 
-Upload tested artifacts initially to `edge`:
-
-```sh
-snapcraft upload grava_0.1.0_amd64.snap --release=edge
-snapcraft upload grava_0.1.0_arm64.snap --release=edge
-snapcraft status grava
-```
-
 Use the revision numbers reported by `snapcraft status` to release each tested
-architecture to stable: `snapcraft release grava REVISION stable`.
+architecture to stable with a separately authenticated CLI that has stable
+publication permission: `snapcraft release grava REVISION stable`. The wrapper's
+credentials deliberately permit only `edge`.
 
 References: [Snapcraft build action](https://github.com/snapcore/action-build),
+[name registration review](https://forum.snapcraft.io/t/manual-review-of-all-new-snap-name-registrations/39440),
+[Snapcraft authentication](https://snapcraft.io/docs/snapcraft-authentication/),
+[Candid authentication removal](https://forum.snapcraft.io/t/candid-authentication-removal-in-snapcraft-9-1/53268),
+[official OCI images and Podman](https://github.com/canonical/snapcraft/blob/main/docker/README.md),
 [`audio-record` interface](https://snapcraft.io/docs/reference/interfaces/audio-record-interface/).
 
 ## Signed APT repository on GitHub Pages
@@ -150,7 +194,6 @@ the repository to Pages. A build/signing failure prevents deployment.
 
 Users install with:
 
-
 ```sh
 sudo install -d -m 0755 /etc/apt/keyrings
 curl -fsSL https://qinzinn.github.io/Grava/apt/grava-archive-keyring.gpg \
@@ -168,14 +211,27 @@ References: [Debian third-party repositories](https://wiki.debian.org/DebianRepo
 
 ## DNF through Fedora COPR
 
-The intended Fedora account is `zinnn` and the planned project is `grava`.
-The project and its builds must exist before the installation command below
-can be used.
+The [zinnn/grava COPR project](https://copr.fedorainfracloud.org/coprs/zinnn/grava/)
+has been created with Fedora 43 and 44 targets for x86_64 and aarch64. The
+[initial build 11107659](https://copr.fedorainfracloud.org/coprs/zinnn/grava/build/11107659/)
+has succeeded for all four targets, including their Cargo tests. The signed
+packages are available from the project repository.
+Installation from the public repository has also been checked on Fedora 43 and
+44 x86_64: package origin, RPM signatures, the installed example configuration,
+and repeated deterministic headless demos. Fedora container images default to
+`tsflags=nodocs`; clear that option when testing the packaged documentation.
 
-Create a Fedora account at <https://accounts.fedoraproject.org/>, log in to
-<https://copr.fedorainfracloud.org/>, and configure `copr-cli` with the credentials
-shown at <https://copr.fedorainfracloud.org/api/> in `~/.config/copr`.
-Do not add this credentials file to Git.
+The [0.1.0 source RPM](https://github.com/QinZinn/Grava/releases/download/v0.1.0/grava-0.1.0-1.fc44.src.rpm)
+and its [SHA256 file](https://github.com/QinZinn/Grava/releases/download/v0.1.0/grava-0.1.0-1.fc44.src.rpm.sha256)
+are published as GitHub `v0.1.0` release assets. Adding these assets leaves the
+published tag unchanged. The source package contains the verified release
+archive and vendored crates so the binary build needs no network. This is
+separate from the prebuilt static RPM on GitHub Releases.
+
+For future submissions, sign in to the COPR dashboard and submit a source RPM,
+or configure `copr-cli` with credentials from
+<https://copr.fedorainfracloud.org/api/> in `~/.config/copr`. Keep that credentials
+file outside Git. Rebuild the source package locally with:
 
 ```sh
 sudo dnf install copr-cli rpm-build cargo-rpm-macros gcc
@@ -183,22 +239,17 @@ packaging/fedora/build-srpm.sh
 copr-cli list-chroots
 ```
 
-Choose available supported Fedora chroots from that listing, then create the
-project and upload the source RPM. For example, if Fedora 44 is available:
+The project already exists. Check its enabled targets against the available
+chroots, then submit the actual source RPM filename printed by the helper:
 
 ```sh
-copr-cli create grava --chroot fedora-44-x86_64 --chroot fedora-44-aarch64 \
-  --description 'Terminal Chladni sand audio visualizer' \
-  --instructions 'Enable this COPR and install grava with dnf.'
 copr-cli build grava dist/grava-0.1.0-1.fc44.src.rpm
 ```
 
-The SRPM filename's Fedora suffix follows the machine preparing it; use the
-actual filename printed by `build-srpm.sh`. The source package contains the
-verified release archive and vendored crates so the binary build needs no
-network. This is separate from the prebuilt static RPM on GitHub Releases.
+The SRPM filename's Fedora suffix follows the machine preparing it; a `.fc44`
+source RPM can still be rebuilt for the project's other enabled Fedora targets.
 
-After the COPR builds succeed, users enable your actual account/project:
+Users enable the repository and install grava with:
 
 ```sh
 sudo dnf copr enable zinnn/grava
