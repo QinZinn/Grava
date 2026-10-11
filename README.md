@@ -50,9 +50,33 @@ sudo apt install ./grava_0.1.0-1_amd64.deb
 Alternatively, unpack the `.tar.gz` archive and run its `grava` binary directly.
 See the [packaging guide](packaging/README.md) to build these artifacts locally.
 
-**Community repositories.** Templates for the AUR (`grava` and `grava-git`), Void Linux
-(`xbps-src`) and Fedora (COPR) are in [`packaging/`](packaging/). They are not
-published packages yet.
+**APT repository (Debian / Ubuntu).** Signed packages for amd64 and arm64:
+
+```sh
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://qinzinn.github.io/Grava/apt/grava-archive-keyring.gpg \
+  | sudo tee /etc/apt/keyrings/grava.gpg >/dev/null
+echo 'deb [signed-by=/etc/apt/keyrings/grava.gpg] https://qinzinn.github.io/Grava/apt stable main' \
+  | sudo tee /etc/apt/sources.list.d/grava.list
+sudo apt update
+sudo apt install grava
+```
+
+Signing key fingerprint: `BCE6 C88C 706F C13B D33D 0A50 7761 EDCE 7AFF 20A5`.
+See the [public key](packaging/apt/grava-archive-key.asc) and
+[verification instructions](docs/DISTRIBUTION.md#signed-apt-repository-on-github-pages).
+
+**Nix.** Install directly from the GitHub flake (with flakes enabled):
+
+```sh
+nix profile install github:QinZinn/Grava#grava
+```
+
+**Other channels.** AUR, Snap Store, Fedora COPR and Void definitions are ready
+in [`packaging/`](packaging/) and [`snap/`](snap/); publication to those services
+is pending. See the [distribution guide](docs/DISTRIBUTION.md) for account setup,
+builds and publication steps. The Nix flake is available directly; a Nixpkgs
+submission is separate.
 
 ### Optional audio backends
 

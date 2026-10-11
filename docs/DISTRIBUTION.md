@@ -9,7 +9,7 @@ All packages use the default pure Rust `pulse` backend unless stated otherwise.
 | AUR | `packaging/aur/grava/`, `packaging/aur/grava-git/` | Push PKGBUILD and generated `.SRCINFO` using your AUR SSH account |
 | Nix | `flake.nix`, `flake.lock`, `packaging/nix/` | Push `main`; users can install the GitHub flake directly |
 | Snap | `snap/snapcraft.yaml`, manual `Snap` workflow | Register the name, build/test, then upload to Snap Store |
-| APT | `packaging/apt/`, manual `APT repository` workflow | Configure signing and GitHub Pages, then deploy |
+| APT | `packaging/apt/`, manual `APT repository` workflow | Live at `https://qinzinn.github.io/Grava/apt` for amd64 and arm64 |
 | DNF | `packaging/fedora/build-srpm.sh` | Create a COPR project and submit the source RPM |
 | Void | source template and `packaging/void/build-binary.sh` | Build a local package or submit upstream when eligible |
 
@@ -115,36 +115,35 @@ References: [Snapcraft build action](https://github.com/snapcore/action-build),
 
 ## Signed APT repository on GitHub Pages
 
-The repository URL will be `https://qinzinn.github.io/Grava/apt`. This publishes
-upstream static DEBs for Debian/Ubuntu; it does not enter Debian's official archive.
+The repository is live at <https://qinzinn.github.io/Grava/apt> with signed
+metadata and the `v0.1.0` packages for amd64 and arm64. It publishes upstream
+static DEBs for Debian/Ubuntu; it does not enter Debian's official archive.
 
-Use a dedicated repository signing key. The commands below create it in a
-private directory outside the checkout, without changing your personal keyring:
+The dedicated signing key's fingerprint is:
 
-```sh
-export GNUPGHOME="$HOME/.local/share/grava-apt-gnupg"
-mkdir -p "$GNUPGHOME"
-chmod 0700 "$GNUPGHOME"
-gpg --batch --pinentry-mode loopback --passphrase '' \
-  --quick-generate-key 'grava APT repository <139782520+QinZinn@users.noreply.github.com>' ed25519 sign 2y
-gpg --list-secret-keys --with-colons
+```text
+BCE6 C88C 706F C13B D33D 0A50 7761 EDCE 7AFF 20A5
 ```
 
-Store this dedicated key's fingerprint (the `fpr` record) as repository Actions
-**variable** `APT_GPG_FINGERPRINT`. Export the key to a private file outside Git
-with `gpg --armor --export-secret-keys FINGERPRINT > "$GNUPGHOME/ci-private-key.asc"`,
-then save that file's contents as Actions **secret** `APT_GPG_PRIVATE_KEY` in
-GitHub Settings. The workflow expects this dedicated CI key to have no passphrase.
-Keep a private backup and renew/rotate the key before its expiry; do not commit
-the export or paste it into chat.
+The [public signing key](../packaging/apt/grava-archive-key.asc) is committed
+for independent verification. After downloading the repository key, check it
+with `gpg --show-keys --with-fingerprint /etc/apt/keyrings/grava.gpg` and compare
+the full fingerprint above.
 
-In GitHub **Settings → Pages → Build and deployment**, choose **GitHub Actions**.
-Push the workflow to `main`, then run **Actions → APT repository → Run workflow**
-with tag `v0.1.0`. It downloads both released DEBs, verifies their release
+Signing and GitHub Pages are already configured. The private key and its
+private export are stored outside Git in `~/.local/share/grava-apt-gnupg/`;
+keep a secure backup of that directory. GitHub Actions holds an encrypted
+`APT_GPG_PRIVATE_KEY` secret and an `APT_GPG_FINGERPRINT` variable. Do not
+commit the private export or paste it into chat. Renew or rotate the key before
+its two-year expiry, updating the public key, fingerprint and Actions settings.
+
+For future releases, run **Actions → APT repository → Run workflow** with the
+published tag. It downloads both released DEBs, verifies their release
 checksums, generates package indexes and signed Release metadata, and deploys
 the repository to Pages. A build/signing failure prevents deployment.
 
-After deployment, users install with:
+Users install with:
+
 
 ```sh
 sudo install -d -m 0755 /etc/apt/keyrings
@@ -156,10 +155,7 @@ sudo apt update
 sudo apt install grava
 ```
 
-The key's fingerprint should also be advertised through the release/project
-documentation so users can verify it independently. Future releases require
-rerunning the workflow with the new published tag. It replaces the repository
-with packages from that selected release.
+Each deployment replaces the repository with packages from the selected release.
 
 References: [Debian third-party repositories](https://wiki.debian.org/DebianRepository/UseThirdParty),
 [`apt-ftparchive`](https://manpages.debian.org/bookworm/apt-utils/apt-ftparchive.1.en.html).
