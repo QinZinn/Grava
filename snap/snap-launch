@@ -1,0 +1,8 @@
+#!/bin/sh
+# Snap's XDG_RUNTIME_DIR is app-specific; the audio socket belongs to the user.
+# Preserve an explicitly selected server, including a custom local socket.
+if [ -z "${PULSE_SERVER:-}" ]; then
+    PULSE_SERVER="unix:/run/user/$(id -u)/pulse/native"
+    export PULSE_SERVER
+fi
+exec "$@"

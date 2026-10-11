@@ -1,0 +1,47 @@
+name: grava
+version: '0.1.0'
+summary: Terminal audio visualizer with Chladni sand figures
+description: |
+  grava captures desktop playback through the PulseAudio protocol, including
+  PipeWire's PulseAudio compatibility server, and draws animated Chladni sand
+  figures in your terminal. Includes themes, live configuration reload,
+  deterministic demo synthesis, and raw PCM input from stdin or a FIFO.
+base: core24
+grade: stable
+confinement: strict
+license: MIT
+contact: https://github.com/QinZinn/Grava/issues
+issues: https://github.com/QinZinn/Grava/issues
+source-code: https://github.com/QinZinn/Grava
+website: https://github.com/QinZinn/Grava
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  grava:
+    command: bin/grava
+    command-chain: [bin/snap-launch]
+    plugs: [audio-playback, audio-record, home]
+
+parts:
+  grava:
+    plugin: rust
+    source: .
+    rust-channel: stable
+    stage-packages: [libgcc-s1]
+    override-build: |
+      craftctl default
+      install -Dm755 snap/snap-launch "$CRAFT_PART_INSTALL/bin/snap-launch"
+      install -Dm644 LICENSE "$CRAFT_PART_INSTALL/share/licenses/grava/LICENSE"
+      install -Dm644 README.md "$CRAFT_PART_INSTALL/share/doc/grava/README.md"
+      install -Dm644 assets/config.toml "$CRAFT_PART_INSTALL/share/doc/grava/config.toml"
+      mkdir -p "$CRAFT_PART_INSTALL/share/man/man1" \
+        "$CRAFT_PART_INSTALL/share/bash-completion/completions" \
+        "$CRAFT_PART_INSTALL/share/zsh/site-functions" \
+        "$CRAFT_PART_INSTALL/share/fish/vendor_completions.d"
+      "$CRAFT_PART_INSTALL/bin/grava" --man > "$CRAFT_PART_INSTALL/share/man/man1/grava.1"
+      "$CRAFT_PART_INSTALL/bin/grava" --completions bash > "$CRAFT_PART_INSTALL/share/bash-completion/completions/grava"
+      "$CRAFT_PART_INSTALL/bin/grava" --completions zsh > "$CRAFT_PART_INSTALL/share/zsh/site-functions/_grava"
+      "$CRAFT_PART_INSTALL/bin/grava" --completions fish > "$CRAFT_PART_INSTALL/share/fish/vendor_completions.d/grava.fish"

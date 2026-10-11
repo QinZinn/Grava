@@ -18,13 +18,14 @@ Summary:        Terminal audio visualizer that draws Chladni figures with sand
 # grava is MIT. The rest is the licenses of the crates compiled into the binary,
 # as listed in LICENSE.dependencies (produced in %%build); re-check the
 # expression when the dependencies change.
-License:        MIT AND (Apache-2.0 OR MIT) AND (Unlicense OR MIT) AND (Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT)
+License:        MIT AND (Apache-2.0 OR MIT) AND (Unlicense OR MIT) AND (Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT) AND Unicode-3.0
 URL:            https://github.com/QinZinn/Grava
 Source0:        %{url}/archive/refs/tags/v%{version}/Grava-%{version}.tar.gz
 Source1:        %{name}-%{version}-vendor.tar.xz
 
 BuildRequires:  cargo-rpm-macros >= 26
 BuildRequires:  gcc
+Recommends:     (pipewire-pulseaudio or pulseaudio)
 
 %description
 grava listens to what the computer plays and draws it in the terminal as sand
@@ -70,5 +71,5 @@ install -Dpm 0644 assets/config.toml %{buildroot}%{_docdir}/%{name}/config.toml
 %{fish_completions_dir}/grava.fish
 
 %changelog
-* Sat Oct 10 2026 Your Name <you@example.org> - 0.1.0-1
+* Sun Oct 11 2026 Zinnn <139782520+QinZinn@users.noreply.github.com> - 0.1.0-1
 - Initial package

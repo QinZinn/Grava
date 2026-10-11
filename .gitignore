@@ -1,5 +1,13 @@
 /target/
 /dist/
+/result
+/result-*
+/*.snap
+/parts/
+/prime/
+/stage/
+/.snapcraft/
+/snap/.snapcraft/
 *.profraw
 *.profdata
 *.swp

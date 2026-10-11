@@ -1,0 +1,16 @@
+pkgbase = grava
+	pkgdesc = Terminal audio visualizer that draws Chladni figures with sand
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/QinZinn/Grava
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = cargo
+	depends = gcc-libs
+	optdepends = pipewire-pulse: record the output on a PipeWire desktop
+	optdepends = pulseaudio: record the output on a PulseAudio desktop
+	source = grava-0.1.0.tar.gz::https://github.com/QinZinn/Grava/archive/refs/tags/v0.1.0.tar.gz
+	sha256sums = 991acb457625f23005345cbc1dba9c5ffd118843195bccdfecb1847702afabec
+
+pkgname = grava

@@ -1,10 +1,7 @@
-# Maintainer: Your Name <you@example.org>
-#
-# Template for the AUR package that follows the main branch. Before submitting:
-# fill in the maintainer line and run `makepkg --printsrcinfo > .SRCINFO`.
+# Maintainer: Zinnn <139782520+QinZinn@users.noreply.github.com>
 
 pkgname=grava-git
-pkgver=0.1.0.r0.g0000000
+pkgver=0.1.0.r2.g7d7c81a
 pkgrel=1
 pkgdesc='Terminal audio visualizer that draws Chladni figures with sand (git version)'
 arch=('x86_64' 'aarch64')
@@ -23,7 +20,7 @@ sha256sums=('SKIP')
 
 pkgver() {
   cd "$pkgname"
-  # The version of Cargo.toml plus the commits since it, such as 0.1.0.r12.g1a2b3c4.
+  # The manifest version plus the total commit count and short revision.
   local version
   version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)"
   printf '%s.r%s.g%s' "$version" \

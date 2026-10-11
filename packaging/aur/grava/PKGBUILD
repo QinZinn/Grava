@@ -1,7 +1,4 @@
-# Maintainer: Your Name <you@example.org>
-#
-# Template for the AUR package of a tagged release. Before submitting: fill in
-# the maintainer line, tag a release, and run `updpkgsums` and `makepkg --printsrcinfo > .SRCINFO`.
+# Maintainer: Zinnn <139782520+QinZinn@users.noreply.github.com>
 
 pkgname=grava
 pkgver=0.1.0
@@ -16,7 +13,7 @@ optdepends=('pipewire-pulse: record the output on a PipeWire desktop'
             'pulseaudio: record the output on a PulseAudio desktop')
 # The archive of a GitHub tag unpacks to Grava-$pkgver.
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP') # replaced by `updpkgsums`
+sha256sums=('991acb457625f23005345cbc1dba9c5ffd118843195bccdfecb1847702afabec')
 
 # The default build is pure Rust. For the optional native backends add
 # 'libpipewire' 'alsa-lib' 'clang' to makedepends, append

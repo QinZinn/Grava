@@ -1,0 +1,63 @@
+name: APT repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published GitHub release to distribute
+        required: true
+        default: v0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install repository tools
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends apt-utils gnupg
+      - name: Download and verify released packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.deb' --pattern SHA256SUMS --dir target/apt-input
+          cd target/apt-input
+          awk '$2 ~ /\.deb$/ { print }' SHA256SUMS | sha256sum -c -
+      - name: Sign the repository
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+          APT_GPG_FINGERPRINT: ${{ vars.APT_GPG_FINGERPRINT }}
+          GNUPGHOME: ${{ runner.temp }}/grava-gnupg
+        run: |
+          test -n "$APT_GPG_PRIVATE_KEY" && test -n "$APT_GPG_FINGERPRINT"
+          mkdir -m 0700 -p "$GNUPGHOME"
+          trap 'rm -rf "$GNUPGHOME"' EXIT
+          printf '%s' "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          packaging/apt/build-repository.sh target/apt-input target/pages/apt "$APT_GPG_FINGERPRINT"
+          touch target/pages/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

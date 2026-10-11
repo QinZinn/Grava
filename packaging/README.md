@@ -1,5 +1,9 @@
 # Packaging
 
+For publishing to AUR, Nix, Snap Store, signed APT, Fedora COPR and Void, see
+[the distribution guide](../docs/DISTRIBUTION.md). Source templates below are
+prepared locally; their presence does not mean they are accepted or published.
+
 ## GitHub release packages
 
 `build.sh` builds the default-feature static musl binary, generates the manual
@@ -84,15 +88,15 @@ distribution archives. Release steps are in [docs/RELEASING.md](../docs/RELEASIN
 
 ## Community packaging templates
 
-The following source-build templates remain unpublished. Each builds the
+The following source-build definitions remain unpublished. Each builds the
 default pure Rust configuration and installs documentation and completions.
 
 | Directory | For | Notes |
 |---|---|---|
-| [`aur/grava`](aur/grava/PKGBUILD) | AUR, tagged release | `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO` |
+| [`aur/grava`](aur/grava/PKGBUILD) | AUR, tagged release | verified source checksum; regenerate `.SRCINFO` after changes |
 | [`aur/grava-git`](aur/grava-git/PKGBUILD) | AUR, main branch | the version comes from `Cargo.toml` and the commit count |
-| [`void/srcpkgs/grava`](void/srcpkgs/grava/template) | Void Linux (`xbps-src`) | `xgensum -i grava` after tagging |
-| [`fedora/grava.spec`](fedora/grava.spec) | Fedora COPR source package | needs a `cargo vendor` tarball; the steps are in the file |
+| [`void/srcpkgs/grava`](void/srcpkgs/grava/template) | Void Linux (`xbps-src`) | verified source checksum; upstream eligibility policy applies |
+| [`fedora/grava.spec`](fedora/grava.spec) | Fedora COPR source package | `packaging/fedora/build-srpm.sh` bundles the release and vendored crates |
 
 When releasing a new version, update each template's version/release and source
 checksum. The optional `pipewire` and `alsa` backends require system libraries;
