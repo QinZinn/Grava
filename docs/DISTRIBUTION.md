@@ -15,6 +15,9 @@ All packages use the default pure Rust `pulse` backend unless stated otherwise.
 
 ## AUR
 
+Publication is deferred: the maintainer currently has no AUR account.
+The prepared definitions remain available for local builds.
+
 Create an account at <https://aur.archlinux.org/>, add your SSH public key in
 account settings, and ensure SSH uses its matching private key for
 `aur@aur.archlinux.org`. Verify access with `ssh -T aur@aur.archlinux.org`.
@@ -72,6 +75,9 @@ the build/install logic for that submission.
 Reference: [Nixpkgs Rust packaging](https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/rust.section.md).
 
 ## Snap Store
+
+The intended publisher username is `zinnn`. Store publication still requires
+authentication and registration of the package name.
 
 Create a publisher account at <https://snapcraft.io/>, log in with
 `snapcraft login`, and reserve the name with `snapcraft register grava`.
@@ -162,6 +168,10 @@ References: [Debian third-party repositories](https://wiki.debian.org/DebianRepo
 
 ## DNF through Fedora COPR
 
+The intended Fedora account is `zinnn` and the planned project is `grava`.
+The project and its builds must exist before the installation command below
+can be used.
+
 Create a Fedora account at <https://accounts.fedoraproject.org/>, log in to
 <https://copr.fedorainfracloud.org/>, and configure `copr-cli` with the credentials
 shown at <https://copr.fedorainfracloud.org/api/> in `~/.config/copr`.
@@ -191,7 +201,7 @@ network. This is separate from the prebuilt static RPM on GitHub Releases.
 After the COPR builds succeed, users enable your actual account/project:
 
 ```sh
-sudo dnf copr enable YOUR_FEDORA_ACCOUNT/grava
+sudo dnf copr enable zinnn/grava
 sudo dnf install grava
 ```
 
